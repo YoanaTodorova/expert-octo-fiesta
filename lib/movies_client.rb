@@ -8,21 +8,20 @@ class MoviesClient
   IMAGE_URL="https://image.tmdb.org/t/p/".freeze
   IMAGE_SIZE="w300"
 
-  attr_accessor :query, :page
+  attr_accessor :query, :page, :total_pages
 
-  def initialize(query:, page: nil)
+  def initialize(query:, page: 1)
     self.query=query
-    self.page = page || 1
+    self.page = page
   end
 
-  def search
-    fetch_movies
+  def search(&block)
+    fetch_movies(&block)
   end
 
   def fetch_movies
     response = make_request
-    puts response
-    format_to_movie_collection(response)
+    yield response['results'], response['total_pages']
   end
 
   def make_request
@@ -44,7 +43,7 @@ class MoviesClient
   end
 
   def uri
-    @uri ||= URI(URL + "&query=#{query}")
+    @uri ||= URI(URL + "&query=#{query}&page=#{page}")
   end
 
   def parse_response(response)
@@ -56,17 +55,6 @@ class MoviesClient
 
   def format_response(response)
     JSON.parse(response.body)
-  end
-
-  def format_to_movie_collection(response)
-    self.page = response['page']
-    puts response['results']
-    response['results'].map do |raw_movie|
-      {
-        title: raw_movie['title'],
-        overview: raw_movie['overview'],
-      }
-    end
   end
 end
 

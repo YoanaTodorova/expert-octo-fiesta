@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_25_122659) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_27_212431) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -29,6 +29,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_25_122659) do
     t.integer "hit_count", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "processed_pages_count", default: 0
+    t.integer "total_pages_count", default: 0
     t.index ["query_string"], name: "index_cached_searches_on_query_string"
   end
 
