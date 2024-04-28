@@ -28,14 +28,19 @@ module Tmdb
               movie.overview = raw_movie['overview']
             end
 
-            #@search.movies << movie
             CachedMovieSearch.find_or_create_by(cached_search_id: @search.id, movie_id: movie.id)
           end
 
           @search.with_lock do
             @search.increment_processed_pages_count!
           end
+
+          notify_collection_fetched if @search.processed_pages_count == total_pages.to_i
         end
+      end
+
+      def notify_collection_fetched
+        SearchesChannel.broadcast_to(@search, "movies-collection-available")
       end
     end
   end

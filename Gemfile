@@ -26,7 +26,7 @@ gem 'psych', '~>3.0'
 
 gem 'responders'
 
-gem 'redis'
+gem 'redis', '~> 5.1'
 gem 'sidekiq'
 
 group :development, :test do
