@@ -24,8 +24,6 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 
 gem 'psych', '~>3.0'
 
-gem 'responders'
-
 gem 'redis', '~> 5.1'
 gem 'sidekiq'
 
