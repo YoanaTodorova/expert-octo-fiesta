@@ -7,6 +7,7 @@ module Tmdb
         @search = CachedSearch.find(cached_search_id)
         @page = page
 
+        delete_expired_search_caches
         fetch_movies
       end
 
@@ -41,6 +42,10 @@ module Tmdb
 
       def notify_collection_fetched
         SearchesChannel.broadcast_to(@search, "movies-collection-available")
+      end
+      
+      def delete_expired_search_caches
+        CachedSearch.where(query_string: query_string).where.not(id: @search.id).destroy_all
       end
     end
   end
