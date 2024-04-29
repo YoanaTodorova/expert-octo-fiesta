@@ -1,0 +1,6 @@
+<%= puts @search.processing %>
+<% if @search.processing %>
+  $("#results").html("<%= j render(partial: 'processing', locals: { search: @search }) %>");
+<% else %>
+  $("#results").html("<%= j render(partial: 'movies_searches/movies/index', locals: { search: @search }) %>");
+<% end %>

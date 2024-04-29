@@ -1,0 +1,22 @@
+<%= "Loading..." %>
+
+<script>
+consumer.subscriptions.create({ channel: 'SearchesChannel', id: "<%= search.id %>" }, {
+    connected() {
+        console.log("Connected to the channel:", this);
+    },
+    disconnected() {
+        console.log("Disconnected");
+    },
+    received(message) {
+        if(message === 'movies-collection-available') {
+            consumer.disconnect();
+            $.ajax({
+                type: 'GET',
+                url: "<%= movies_search_movies_path(search.id) %>",
+                dataType : 'script'
+            });
+        }
+    }
+});
+</script>
