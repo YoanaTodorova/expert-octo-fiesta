@@ -1,0 +1,7 @@
+<ul>
+<% movies.find_each do |movie| %>
+    <li><%= movie.title %></li>
+<% end %>
+</ul>
+
+<%= paginate movies, params: { controller: 'movies_searches/movies', action: 'index', movies_search_id: search.id }, remote: true %>

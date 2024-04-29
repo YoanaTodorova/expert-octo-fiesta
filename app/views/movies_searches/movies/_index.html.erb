@@ -1,0 +1,4 @@
+<% page = 1 if local_assigns[:page].nil? %>
+
+<%= search.hit_count %>
+<%= render(partial: 'movies_searches/movies/list', locals: { search: search, movies: search.movies.page(page) }) %>
