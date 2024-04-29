@@ -1,0 +1,7 @@
+<%= form_with url: movies_searches_path(format: :js), method: :post, local: false, html: { id: 'search-form' } do |form| %>
+  <%= form.label :query, "Search for:" %>
+  <%= form.text_field :query %>
+  <%= form.submit "Search" %>
+<% end %>
+
+<div id="results"></div>
