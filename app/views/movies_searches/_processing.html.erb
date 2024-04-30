@@ -1,22 +1,24 @@
-<%= "Loading..." %>
+<div>Fetching movies..</div>
+<%= image_tag("basic-spinner.gif", size: "80x80") %>
 
 <script>
-consumer.subscriptions.create({ channel: 'SearchesChannel', id: "<%= search.id %>" }, {
+  $("#search-form input[type='submit']").prop('disabled', true)
+
+  consumer.subscriptions.create({ channel: 'SearchesChannel', id: "<%= search.id %>" }, {
     connected() {
-        console.log("Connected to the channel:", this);
     },
     disconnected() {
-        console.log("Disconnected");
+      $("#search-form input[type='submit']").prop('disabled', false)
     },
     received(message) {
-        if(message === 'movies-collection-available') {
-            consumer.disconnect();
-            $.ajax({
-                type: 'GET',
-                url: "<%= movies_search_movies_path(search.id) %>",
-                dataType : 'script'
-            });
-        }
+      if(message === 'movies-collection-available') {
+        consumer.disconnect();
+        $.ajax({
+          type: 'GET',
+          url: "<%= movies_search_movies_path(search.id) %>",
+          dataType : 'script'
+        });
+      }
     }
-});
+  });
 </script>
