@@ -5,7 +5,8 @@ module Tmdb
 
       def perform(cached_search_id, page: nil)
         @search = CachedSearch.find(cached_search_id)
-        @page = page
+        @initial_fetch = !page
+        @page = page || 1
 
         delete_expired_search_caches
         fetch_movies
@@ -15,28 +16,36 @@ module Tmdb
 
       def fetch_movies
         MoviesClient.new(query: @search.query_string, page: @page).search do |search_results, total_pages|
-          if !@page
-            @search.update_column(:total_pages_count, total_pages.to_i)
+          fetch_rest_of_pages(total_pages.to_i) if @initial_fetch
 
-            (2..total_pages).to_a.each do |next_page|
-              Tmdb::Movies::FetchJob.perform_later(@search.id, page: next_page)
-            end
-          end
-
-          search_results.each do |raw_movie|
-            movie = Movie.find_or_create_by(external_id: raw_movie['id'].to_s) do |movie|
-              movie.title = raw_movie['title']
-              movie.overview = raw_movie['overview']
-            end
-
-            CachedMovieSearch.find_or_create_by(cached_search_id: @search.id, movie_id: movie.id)
-          end
+          search_results.each { |raw_movie| save_movie(raw_movie) }
 
           @search.with_lock do
             @search.increment_processed_pages_count!
           end
 
-          notify_collection_fetched if @search.processed_pages_count == total_pages.to_i
+          notify_collection_fetched if @search.processed_pages_count == @search.total_pages_count
+        end
+      end
+
+      def save_movie(raw_movie)
+        movie = Movie.find_or_create_by(external_id: raw_movie['id'].to_s) do |movie|
+          movie.title = raw_movie['title']
+          movie.overview = raw_movie['overview']
+        end
+
+        CachedMovieSearch.find_or_create_by(cached_search_id: @search.id, movie_id: movie.id)
+      end
+
+      def fetch_rest_of_pages(total_pages)
+        @search.update_column(:total_pages_count, total_pages)
+
+        enqueue_rest_of_pages
+      end
+
+      def enqueue_rest_of_pages
+        (2..@search.total_pages_count).to_a.each do |next_page|
+          Tmdb::Movies::FetchJob.perform_later(@search.id, page: next_page)
         end
       end
 
@@ -45,7 +54,7 @@ module Tmdb
       end
       
       def delete_expired_search_caches
-        CachedSearch.where(query_string: query_string).where.not(id: @search.id).destroy_all
+        CachedSearch.where(query_string: @search.query_string).where.not(id: @search.id).destroy_all
       end
     end
   end

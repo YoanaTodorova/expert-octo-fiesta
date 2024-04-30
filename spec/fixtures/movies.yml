@@ -2,3 +2,8 @@ the_office:
   id: 1
   title: The Office
   external_id: 1
+
+lets_test_it_part_1:
+  id: 2
+  title: "Let's test it: Part 1"
+  external_id: 2
