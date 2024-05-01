@@ -18,7 +18,7 @@ module Tmdb
         MoviesClient.new(query: @search.query_string, page: @page).search do |search_results, total_pages|
           fetch_rest_of_pages(total_pages.to_i) if @initial_fetch
 
-          search_results.each { |raw_movie| save_movie(raw_movie) }
+          search_results.each { |raw_movie| persist_movie(raw_movie) }
 
           @search.with_lock do
             @search.increment_processed_pages_count!
@@ -28,13 +28,22 @@ module Tmdb
         end
       end
 
-      def save_movie(raw_movie)
+      def persist_movie(raw_movie)
         movie = Movie.find_or_create_by(external_id: raw_movie['id'].to_s) do |movie|
           movie.title = raw_movie['title']
           movie.overview = raw_movie['overview']
         end
+        persist_movie_image(movie, raw_movie['poster_path'])
 
         CachedMovieSearch.find_or_create_by(cached_search_id: @search.id, movie_id: movie.id)
+
+      end
+
+      def persist_movie_image(movie, poster_path)
+        if poster_path
+          image_url = MoviesClient::IMAGE_URL + poster_path
+          Tmdb::Movies::Image::FetchJob.perform_later(movie.id, image_url)
+        end
       end
 
       def fetch_rest_of_pages(total_pages)

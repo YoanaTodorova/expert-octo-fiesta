@@ -22,7 +22,7 @@ RSpec.describe Tmdb::Movies::FetchJob do
       context "and no page param" do
         let(:params) { {} }
         let(:existing_movie_attributes) { movies(:lets_test_it_part_1).attributes.slice('title', 'external_id') }
-        let(:new_movie_attributes) { { 'title' => "lets test it part 2", 'external_id' => 3 }}
+        let(:new_movie_attributes) { { 'title' => "lets test it part 2", 'external_id' => 3, 'poster_path' => '/some/path' }}
         let(:movie_results) {
           [
             existing_movie_attributes,
@@ -39,6 +39,10 @@ RSpec.describe Tmdb::Movies::FetchJob do
 
         it 'creates only missing movies' do
           expect { subject }.to change { Movie.count }.by(1)
+        end
+
+        it 'enqueues jobs for image fetching only for movies with poster_path attribute' do
+          expect { subject }.to have_enqueued_job(Tmdb::Movies::Image::FetchJob).exactly(1)
         end
 
         it "enqueues job #{described_class} for the rest of the pages" do

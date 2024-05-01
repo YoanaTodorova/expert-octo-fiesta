@@ -1,6 +1,11 @@
 <ul>
 <% movies.find_each do |movie| %>
-    <li><%= movie.title %></li>
+    <li>
+      <% if movie.poster && movie.poster.attached? %>
+        <%= image_tag url_for(movie.poster), style: 'max-height: 100px; max-width: 100px;' %>
+      <% end %>
+      <%= movie.title %>
+    </li>
 <% end %>
 </ul>
 
