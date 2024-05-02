@@ -2,6 +2,12 @@ module Tmdb
   module Movies
     class FetchJob < ApplicationJob
       queue_as :default
+      sidekiq_options retry: 2
+
+      sidekiq_retries_exhausted do |msg, _ex|
+        search = CachedSearch.find(msg['args'].first['arguments'].first)
+        SearchesChannel.broadcast_to(search, "movies-collection-fetch-failed")
+      end
 
       def perform(cached_search_id, page: nil)
         @search = CachedSearch.find(cached_search_id)

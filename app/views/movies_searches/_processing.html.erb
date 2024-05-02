@@ -1,23 +1,29 @@
-<div>Fetching movies..</div>
-<%= image_tag("basic-spinner.gif", size: "80x80") %>
+<div id="processing-feedback">Fetching movies..</div>
+<div id="spinner"><%= image_tag("basic-spinner.gif", size: "80x80") %></div>
 
 <script>
-  $("#search-form input[type='submit']").prop('disabled', true)
-
   consumer.subscriptions.create({ channel: 'SearchesChannel', id: "<%= search.id %>" }, {
     connected() {
+      $("#search-form input[type='submit']").prop('disabled', true)
     },
     disconnected() {
       $("#search-form input[type='submit']").prop('disabled', false)
     },
     received(message) {
-      if(message === 'movies-collection-available') {
-        consumer.disconnect();
-        $.ajax({
-          type: 'GET',
-          url: "<%= movies_search_movies_path(search.id) %>",
-          dataType : 'script'
-        });
+      switch (message) {
+        case 'movies-collection-available':
+          consumer.disconnect();
+          $.ajax({
+            type: 'GET',
+            url: "<%= movies_search_movies_path(search.id) %>",
+            dataType: 'script'
+          });
+          break;
+        case 'movies-collection-fetch-failed':
+          consumer.disconnect();
+          $("#processing-feedback").html('There was an error fetching movies for this search term.')
+          $("#spinner").hide()
+          break;
       }
     }
   });

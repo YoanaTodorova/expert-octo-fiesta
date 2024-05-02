@@ -1,4 +1,8 @@
 <% page = 1 if local_assigns[:page].nil? %>
 
-<%= search.hit_count %>
+<% if search.hit_count == 0 %>
+  <div>You're seeing results from API</div>
+<% else %>
+  <div>You're seeing cached results</div>
+<% end %>
 <%= render(partial: 'movies_searches/movies/list', locals: { search: search, movies: search.movies.page(page) }) %>
