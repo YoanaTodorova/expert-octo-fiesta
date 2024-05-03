@@ -3,9 +3,11 @@ require 'net/http'
 
 # This class is responsible to process movies list
 class MoviesClient
-  URL = "https://api.themoviedb.org/3/search/movie?include_adult=false&language=en-US"
+  URL = "https://api.themoviedb.org/3/search/movie?"
 
   IMAGE_URL="https://image.tmdb.org/t/p/original".freeze
+
+  class ApiError < StandardError; end
 
   attr_accessor :query, :page, :total_pages
 
@@ -42,13 +44,15 @@ class MoviesClient
   end
 
   def uri
-    @uri ||= URI(URL + "&query=#{query}&page=#{page}")
+    @uri ||= URI(URL + "query=#{query}&page=#{page}")
   end
 
   def parse_response(response)
     case response.code.to_i
     when 200
       format_response(response)
+    else
+      raise ApiError
     end
   end
 
