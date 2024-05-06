@@ -14,7 +14,8 @@ RSpec.describe Tmdb::Movies::FetchJob do
       before do
         allow(MoviesClient).to receive(:new).and_return(movies_client)
         allow(movies_client).to receive(:search).and_yield(movie_results, total_pages)
-        allow(SearchesChannel).to receive(:broadcast_to).and_return(true)
+        allow(CachedSearch).to receive(:find).and_return(cached_search)
+        allow(cached_search).to receive(:notify_successful_collection_download).and_return(true)
       end
       let(:query_string) { "let's test it" }
       let(:cached_search) { CachedSearch.create(query_string: query_string) }
@@ -68,10 +69,10 @@ RSpec.describe Tmdb::Movies::FetchJob do
             cached_search.update_columns(processed_pages_count: params[:page] - 1, total_pages_count: total_pages)
           end
 
-          it 'broadcasts message to searches channel' do
+          it "calls cached_search's notify_successful_collection_download" do
             subject
 
-            expect(SearchesChannel).to have_received(:broadcast_to).with(cached_search, 'movies-collection-available').once
+            expect(cached_search).to have_received(:notify_successful_collection_download)
           end
         end
       end

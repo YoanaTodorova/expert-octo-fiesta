@@ -6,7 +6,7 @@ module Tmdb
 
       sidekiq_retries_exhausted do |msg, _ex|
         search = CachedSearch.find(msg['args'].first['arguments'].first)
-        SearchesChannel.broadcast_to(search, "movies-collection-fetch-failed")
+        search.notify_unsuccessful_collection_download
       end
 
       def perform(cached_search_id, page: nil)
@@ -65,7 +65,7 @@ module Tmdb
       end
 
       def notify_collection_fetched
-        SearchesChannel.broadcast_to(@search, "movies-collection-available")
+        @search.notify_successful_collection_download
       end
       
       def delete_expired_search_caches

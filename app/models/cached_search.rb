@@ -19,4 +19,12 @@ class CachedSearch < ApplicationRecord
   def increment_processed_pages_count!
     update_column(:processed_pages_count, processed_pages_count + 1)
   end
+
+  def notify_successful_collection_download
+    SearchesChannel.broadcast_to(self, "movies-collection-available")
+  end
+
+  def notify_unsuccessful_collection_download
+    SearchesChannel.broadcast_to(self, "movies-collection-fetch-failed")
+  end
 end
